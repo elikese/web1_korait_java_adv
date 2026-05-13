@@ -2,6 +2,7 @@ package com.study.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.dto.AddProductReqDto;
+import com.study.dto.ProductResDto;
 import com.study.entity.Product;
 import com.study.service.ProductService;
 import com.study.util.MyUtils;
@@ -27,7 +28,7 @@ public class ProductServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<Product> products = service.getAllProduct();
+        List<ProductResDto> products = service.getAllProduct();
         MyUtils.writeJson(resp, products, objectMapper);
     }
 
@@ -65,9 +66,44 @@ public class ProductServlet extends HttpServlet {
         
     }
 
-
-    // 수정
-
     // 삭제
+    // /product/{id}
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // url은 String 취급
+        String path = req.getPathInfo();
+        
+        if(path == null || path.equals("/")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            Map<String, String> errorMsg = Map.of("message", "id가 필요합니다");
+            MyUtils.writeJson(resp, errorMsg, objectMapper);
+            return;
+        }
+        
+        // ex) "/11", "/3", "/1"
+        String strId = path.substring(1);
+        int id = Integer.parseInt(strId);
 
+        try {
+            int sc = service.removeProduct(id);
+            if (sc <= 0) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
+                Map<String, String> errorMsg = Map.of("message", "해당 상품을 찾을 수 없습니다");
+                MyUtils.writeJson(resp, errorMsg, objectMapper);
+                return;
+            }
+
+            // 성공했을때
+            resp.setStatus(HttpServletResponse.SC_OK);
+            MyUtils.writeJson(resp, Map.of("message", "삭제완료"), objectMapper);
+
+        } catch (SQLException e) {
+            // DB 오류메세지, 500 상태코드
+        }
+
+
+        
+
+
+    }
 }

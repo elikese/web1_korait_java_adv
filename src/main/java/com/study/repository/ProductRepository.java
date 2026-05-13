@@ -91,5 +91,30 @@ public class ProductRepository {
         return -1; // 실패시 -1 리턴
     }
 
+    // 단건 삭제
+    public int delete(int id) throws SQLException {
+        String sql = "DELETE FROM product WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = DBConnection.getConnection();
+            ps = conn.prepareStatement(sql);
+
+            ps.setInt(1, id);
+
+            int sc = ps.executeUpdate();
+            return sc;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if(ps != null) try {ps.close();} catch (SQLException e) {}
+            if(conn != null) try {conn.close();} catch (SQLException e) {}
+        }
+
+        return -1;
+    }
+
 
 }
